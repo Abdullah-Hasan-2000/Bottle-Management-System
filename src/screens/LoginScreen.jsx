@@ -1,12 +1,36 @@
-import React from 'react'
+import { useState } from 'react'
 import { auth } from '../config/firebase.jsx'
+import { signInWithEmailAndPassword } from "firebase/auth";
 import { Box, Paper } from '@mui/material';
 import Typography from '@mui/material/Typography';
 import InputField from '../components/InputField/InputField.jsx';
 import AuthButton from '../components/AuthButton/AuthButton.jsx';
 import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 
 const LoginScreen = () => {
+
+  const navigate = useNavigate();
+
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+
+  
+
+  const handleLogin = () => {
+    email && password ? signInWithEmailAndPassword(auth, email, password)
+      .then((userCredential) => {
+        const user = userCredential.user;
+        console.log("Login successful with email:", user.email);
+        navigate('/dashboard');
+      })
+      .catch((error) => {
+        const errorCode = error.code;
+        const errorMessage = error.message;
+        console.error("Error during login:", errorCode, errorMessage);
+      }) :
+      alert("Please enter your email and password.");
+  };
   return (
     <>
       <Box sx={{ paddingTop: "150px" }} >
@@ -15,15 +39,20 @@ const LoginScreen = () => {
             Login Screen
           </Typography>
           <Typography variant="body2" sx={{ marginY: "15px" }}>
-            Welcome to the Bottle Management System!
+            Welcome to the Bottle Management System...
+            <br />Please login to continue.
           </Typography>
-          <div style={{ display: "flex", flexDirection: "column", gap: "20px", marginBottom: "20px" }}>
-            <InputField label="Email" />
-
-            <InputField label="Password" />
-          </div>
-          <AuthButton color="primary" value="Login" />
-          <Typography variant="body2" sx={{ marginTop: "10px" }}>
+          <form onSubmit={(e) => {
+            e.preventDefault();
+            handleLogin();
+          }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: "20px", marginBottom: "20px" }}>
+              <InputField onchange={(e) => setEmail(e.target.value)} label="Email" autoComplete="email" type="email" />
+              <InputField onchange={(e) => setPassword(e.target.value)} label="Password" type="password" autoComplete="new-password" />
+            </div>
+            <AuthButton color="primary" value="Login" type="submit" />
+          </form>
+          <Typography variant="body2" sx={{ marginTop: "20px" }}>
             Don't have an account? <Link to="/signup">Sign Up</Link>
           </Typography>
         </Paper>
